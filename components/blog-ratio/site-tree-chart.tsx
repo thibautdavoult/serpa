@@ -34,20 +34,59 @@ const COLORS = {
     "#ec4899", // pink
   ],
   topics: "#94a3b8", // lighter for leaf nodes
+  other: "#9ca3af", // gray for "Other" group
 };
+
+// Calculate smart threshold for "Other" grouping
+function calculateOtherThreshold(
+  folders: { count: number }[],
+  totalPages: number
+): number {
+  const counts = folders.map((f) => f.count).sort((a, b) => b - a);
+
+  // If 6 or fewer folders, show them all
+  if (counts.length <= 6) {
+    return 0;
+  }
+
+  // Use 2% of total as threshold (minimum 2 pages)
+  const percentageThreshold = Math.max(2, Math.floor(totalPages * 0.02));
+  
+  // Or use the count of the 6th largest folder
+  const top6Threshold = counts.length >= 6 ? counts[5] : 0;
+  
+  // Use the smaller of the two thresholds
+  const threshold = Math.min(
+    Math.max(percentageThreshold, 2),
+    Math.max(top6Threshold, 2)
+  );
+
+  const wouldBeGrouped = counts.filter((c) => c < threshold).length;
+
+  // Ensure we keep at least 3 main folders
+  if (counts.length - wouldBeGrouped < 3 && counts.length >= 3) {
+    return counts[2] > 0 ? counts[2] : 1;
+  }
+
+  // Only group if there are at least 3 small folders
+  if (wouldBeGrouped <= 2) {
+    return 0;
+  }
+
+  return threshold;
+}
 
 export function SiteTreeChart({ results }: SiteTreeChartProps) {
   const treeData = useMemo(() => {
     const children: TreeNode[] = [];
-    let nodeIndex = 0;
 
-    // Add blog section with topics (counts as first node if present)
+    // Add blog section with topics
     if (results.blogUrls > 0) {
       const blogNode: TreeNode = {
         name: `Blog (${results.blogUrls})`,
         value: results.blogUrls,
         itemStyle: { color: COLORS.blog },
-        collapsed: nodeIndex >= 2, // Collapse if not in first 2
+        collapsed: false, // Expanded by default
         children: results.blogTopics.map((topic) => ({
           name: `${formatTopicName(topic.name)} (${topic.count})`,
           value: topic.count,
@@ -55,16 +94,36 @@ export function SiteTreeChart({ results }: SiteTreeChartProps) {
         })),
       };
       children.push(blogNode);
-      nodeIndex++;
     }
 
-    // Add website folders with topics
-    results.websiteFolders.forEach((folder, index) => {
+    // Calculate threshold for grouping small folders
+    const threshold = calculateOtherThreshold(
+      results.websiteFolders,
+      results.totalUrls
+    );
+
+    // Separate main folders from "other" folders
+    const mainFolders: typeof results.websiteFolders = [];
+    const otherFolders: typeof results.websiteFolders = [];
+
+    for (const folder of results.websiteFolders) {
+      if (threshold > 0 && folder.count < threshold) {
+        otherFolders.push(folder);
+      } else {
+        mainFolders.push(folder);
+      }
+    }
+
+    // Sort main folders by count (descending)
+    mainFolders.sort((a, b) => b.count - a.count);
+
+    // Add main website folders with topics
+    mainFolders.forEach((folder, index) => {
       const folderNode: TreeNode = {
         name: `${folder.folder} (${folder.count})`,
         value: folder.count,
         itemStyle: { color: COLORS.folders[index % COLORS.folders.length] },
-        collapsed: nodeIndex >= 2, // Collapse if not in first 2
+        collapsed: false, // Expanded by default
         children: folder.topics.map((topic) => ({
           name: `${formatTopicName(topic.name)} (${topic.count})`,
           value: topic.count,
@@ -72,8 +131,24 @@ export function SiteTreeChart({ results }: SiteTreeChartProps) {
         })),
       };
       children.push(folderNode);
-      nodeIndex++;
     });
+
+    // Add "Other" node if there are grouped folders
+    if (otherFolders.length > 0) {
+      const otherCount = otherFolders.reduce((sum, f) => sum + f.count, 0);
+      const otherNode: TreeNode = {
+        name: `Other (${otherCount})`,
+        value: otherCount,
+        itemStyle: { color: COLORS.other },
+        collapsed: true, // Always start collapsed
+        children: otherFolders.map((folder) => ({
+          name: `${folder.folder} (${folder.count})`,
+          value: folder.count,
+          itemStyle: { color: COLORS.topics },
+        })),
+      };
+      children.push(otherNode);
+    }
 
     const root: TreeNode = {
       name: results.domain,
@@ -104,8 +179,8 @@ export function SiteTreeChart({ results }: SiteTreeChartProps) {
           orient: "LR", // Left to Right (horizontal)
           top: "5%",
           bottom: "5%",
-          left: "10%",
-          right: "20%",
+          left: "8%",
+          right: "30%",
           symbol: "circle",
           symbolSize: (value: number, params: { data: { children?: unknown[] } }) => {
             // Larger nodes for sections, smaller for topics
@@ -123,14 +198,6 @@ export function SiteTreeChart({ results }: SiteTreeChartProps) {
             align: "left",
             fontSize: 11,
             color: "#374151",
-            formatter: (params: { name: string }) => {
-              // Truncate long names
-              const name = params.name;
-              if (name.length > 20) {
-                return name.slice(0, 18) + "…";
-              }
-              return name;
-            },
           },
           leaves: {
             label: {
@@ -164,9 +231,15 @@ export function SiteTreeChart({ results }: SiteTreeChartProps) {
     [treeData]
   );
 
-  // Calculate height based on number of folders (for horizontal layout, height grows with branches)
-  const folderCount = (results.blogUrls > 0 ? 1 : 0) + results.websiteFolders.length;
-  const chartHeight = Math.max(400, folderCount * 80);
+  // Calculate height based on number of visible nodes (for horizontal layout, height grows with branches)
+  const visibleNodeCount = useMemo(() => {
+    const threshold = calculateOtherThreshold(results.websiteFolders, results.totalUrls);
+    const mainFolderCount = results.websiteFolders.filter(f => threshold === 0 || f.count >= threshold).length;
+    const hasOtherGroup = threshold > 0 && results.websiteFolders.some(f => f.count < threshold);
+    const blogCount = results.blogUrls > 0 ? 1 : 0;
+    return blogCount + mainFolderCount + (hasOtherGroup ? 1 : 0);
+  }, [results]);
+  const chartHeight = Math.max(400, visibleNodeCount * 80);
 
   return (
     <div className="bg-background border-2 border-border rounded-2xl p-6 shadow-xl">

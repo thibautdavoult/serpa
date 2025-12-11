@@ -1,35 +1,27 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { InteractiveAccordion, type AccordionItem } from "@/components/ui/interactive-accordion";
+import { ArrowRight, Layers, PieChart } from "lucide-react";
 
-const faqItems: AccordionItem[] = [
+const tools = [
   {
-    id: "what-is-paa",
-    number: "01",
-    title: "What is PAA gap analysis?",
-    content:
-      "PAA (People Also Ask) gap analysis identifies which Google PAA questions your competitors rank for but you don't, revealing content opportunities to capture more search visibility.",
+    id: "topic-analyzer",
+    title: "Website Topic Analyzer",
+    tagline: "See what Google sees.",
+    description:
+      "Discover how your pages cluster into topics. Find the outliers that confuse search engines and dilute your authority.",
+    href: "/app",
+    icon: Layers,
+    cta: "Analyze Your Topics",
   },
   {
-    id: "how-it-works",
-    number: "02",
-    title: "How does Serpa work?",
-    content:
-      "Enter your target keywords and domain. Serpa analyzes SERP data to show which PAA questions you're missing and where you can gain visibility with a simple, color-coded dashboard.",
-  },
-  {
-    id: "how-long",
-    number: "03",
-    title: "How long does analysis take?",
-    content:
-      "Most analyses complete in under 2 minutes. You get instant, actionable insights without complex setup or waiting.",
-  },
-  {
-    id: "pricing",
-    number: "04",
-    title: "Is Serpa free to use?",
-    content:
-      "Start with 2 free queries, no credit card required. Upgrade for unlimited analyses and additional features.",
+    id: "blog-ratio",
+    title: "Blog vs Website Ratio",
+    tagline: "Is your blog carrying your SEO?",
+    description:
+      "Instantly see how much of your site is blog content vs core pages. Spot content imbalances before they cost you.",
+    href: "/blog-ratio",
+    icon: PieChart,
+    cta: "Check Your Ratio",
   },
 ];
 
@@ -41,11 +33,11 @@ export default function HomePage() {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="font-semibold text-lg">Serpa</div>
           <nav className="flex items-center gap-6">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
-            </Link>
-            <Link href="/app">
-              <Button variant="outline" size="sm">Sign In</Button>
+            <Link
+              href="#tools"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Tools
             </Link>
           </nav>
         </div>
@@ -53,83 +45,103 @@ export default function HomePage() {
 
       {/* Hero */}
       <main className="flex-1">
-        <section className="container mx-auto px-6 py-24 md:py-32">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-semibold tracking-tight mb-6">
-              Capture More Visibility with People Also Ask
+        <section className="container mx-auto px-6 py-20 md:py-28">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-5">
+              SEO tools that show you what matters
             </h1>
-            <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
-              Find exactly which PAA questions you&apos;re missing.
-              Simple gap analysis for SEOs who want results, not complexity.
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              No fluff. No 47-step setup. Just instant insights you can act on.
             </p>
-            <div className="flex items-center justify-center gap-4">
-              <Link href="/app">
-                <Button size="lg" className="h-12 px-8">
-                  Start Free Analysis
-                </Button>
-              </Link>
+          </div>
+        </section>
+
+        {/* Tools Grid */}
+        <section id="tools" className="border-t bg-muted/30">
+          <div className="container mx-auto px-6 py-16">
+            <div className="max-w-4xl mx-auto">
+              <div className="grid md:grid-cols-2 gap-6">
+                {tools.map((tool) => (
+                  <Link
+                    key={tool.id}
+                    href={tool.href}
+                    className="group block p-6 bg-background border rounded-xl hover:border-foreground/20 hover:shadow-lg transition-all"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-muted rounded-lg group-hover:bg-foreground/5 transition-colors">
+                        <tool.icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-1">
+                          {tool.title}
+                        </h3>
+                        <p className="text-sm font-medium text-foreground/80 mb-2">
+                          {tool.tagline}
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                          {tool.description}
+                        </p>
+                        <span className="inline-flex items-center text-sm font-medium group-hover:gap-2 transition-all">
+                          {tool.cta}
+                          <ArrowRight className="ml-1 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Features */}
-        <section className="border-t bg-muted/30">
-          <div className="container mx-auto px-6 py-20">
-            <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-              <div>
-                <h3 className="font-semibold text-lg mb-3">One Input, One Output</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Enter your keywords and domain. Get instant visibility into which PAA questions you&apos;re missing.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Visual Gap Analysis</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Color-coded dashboard shows exactly where you have opportunities to capture more visibility.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Fast ROI</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Identify content opportunities in under 2 minutes. No learning curve, no complexity.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ */}
+        {/* Value Props */}
         <section className="border-t">
-          <div className="container mx-auto px-6 py-20">
-            <div className="max-w-2xl mx-auto">
-              <div className="mb-12">
-                <h2 className="text-3xl font-semibold tracking-tight mb-3">
-                  Frequently Asked Questions
-                </h2>
-                <p className="text-muted-foreground text-lg">
-                  Everything you need to know about Serpa.
-                </p>
+          <div className="container mx-auto px-6 py-16">
+            <div className="max-w-3xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-8 text-center">
+                <div>
+                  <p className="text-2xl font-semibold mb-1">&lt; 2 min</p>
+                  <p className="text-sm text-muted-foreground">
+                    From URL to insights
+                  </p>
+                </div>
+                <div>
+                  <p className="text-2xl font-semibold mb-1">Free to start</p>
+                  <p className="text-sm text-muted-foreground">
+                    No credit card required
+                  </p>
+                </div>
+                <div>
+                  <p className="text-2xl font-semibold mb-1">Zero setup</p>
+                  <p className="text-sm text-muted-foreground">
+                    Just enter a domain
+                  </p>
+                </div>
               </div>
-              <InteractiveAccordion items={faqItems} defaultActiveId="what-is-paa" />
             </div>
           </div>
         </section>
 
         {/* CTA */}
-        <section className="border-t">
-          <div className="container mx-auto px-6 py-20">
-            <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-3xl font-semibold mb-4">
-                Ready to discover your opportunities?
+        <section className="border-t bg-muted/30">
+          <div className="container mx-auto px-6 py-16">
+            <div className="max-w-xl mx-auto text-center">
+              <h2 className="text-2xl font-semibold mb-3">
+                Stop guessing. Start seeing.
               </h2>
-              <p className="text-muted-foreground mb-8">
-                Start with 2 free queries. No credit card required.
+              <p className="text-muted-foreground mb-6">
+                Pick a tool and get answers in under 2 minutes.
               </p>
-              <Link href="/app">
-                <Button size="lg" className="h-12 px-8">
-                  Get Started Free
-                </Button>
-              </Link>
+              <div className="flex items-center justify-center gap-3">
+                <Link href="/app">
+                  <Button size="lg">Try Topic Analyzer</Button>
+                </Link>
+                <Link href="/blog-ratio">
+                  <Button size="lg" variant="outline">
+                    Try Blog Ratio
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -139,12 +151,18 @@ export default function HomePage() {
       <footer className="border-t py-8">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <p>&copy; 2025 Serpa. All rights reserved.</p>
+            <p>&copy; 2025 Serpa</p>
             <div className="flex gap-6">
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link
+                href="#"
+                className="hover:text-foreground transition-colors"
+              >
                 Privacy
               </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link
+                href="#"
+                className="hover:text-foreground transition-colors"
+              >
                 Terms
               </Link>
             </div>

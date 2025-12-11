@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, FileText, Folder, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, FileText, Folder, ChevronDown, ChevronUp, PieChart, Eye } from "lucide-react";
 import type { BlogRatioResponse, BlogRatioProgress, FolderGroup } from "@/types/blog-ratio";
 import { SiteMindMap } from "@/components/blog-ratio/site-mind-map";
 import { SiteTreeChart } from "@/components/blog-ratio/site-tree-chart";
@@ -318,17 +318,23 @@ export default function BlogRatioPage() {
       <main className="flex-1 p-6">
         <div className="w-full max-w-4xl mx-auto">
           {/* Hero Section */}
-          <div className="text-center mb-12 space-y-4 pt-8">
-            <h1 className="text-4xl font-bold tracking-tight">
-              Blog vs Website Ratio
+          <div className="text-center mb-10 space-y-4 pt-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium mb-2">
+              <PieChart className="h-4 w-4" />
+              <span>Content Structure Analysis</span>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+              Is your blog carrying your SEO?
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Discover how much of your website is blog content vs core pages
+              See exactly how your content is distributed. Find structural imbalances before they hurt your rankings.
             </p>
           </div>
 
           {/* Input */}
-          <div className="relative mb-8">
+          <div className="relative mb-6">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-blue-500/30 to-blue-500/20 rounded-2xl blur-xl opacity-50" />
             <div className="relative bg-background border-2 border-border rounded-xl shadow-lg p-2">
               <div className="flex items-center gap-2">
                 <Input
@@ -337,7 +343,7 @@ export default function BlogRatioPage() {
                   onChange={(e) => setDomain(e.target.value)}
                   onKeyDown={handleKeyDown}
                   disabled={isAnalyzing}
-                  placeholder="Enter your domain (e.g., stripe.com)"
+                  placeholder="Enter your domain..."
                 />
                 <Button
                   size="lg"
@@ -358,8 +364,31 @@ export default function BlogRatioPage() {
                   )}
                 </Button>
               </div>
+              <div className="px-4 pt-2 pb-1 text-xs text-muted-foreground">
+                Enter without https:// or www. • Press Enter to analyze
+              </div>
             </div>
           </div>
+
+          {/* Example Sites */}
+          {!isAnalyzing && !results && (
+            <div className="mb-10 text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Try these examples:
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {["hubspot.com", "ahrefs.com", "buffer.com"].map((example) => (
+                  <button
+                    key={example}
+                    onClick={() => setDomain(example)}
+                    className="px-4 py-2 rounded-lg border border-border hover:border-blue-500 hover:bg-blue-500/5 text-sm transition-colors"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Progress */}
           {isAnalyzing && (
@@ -384,6 +413,39 @@ export default function BlogRatioPage() {
             <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
               <p className="font-medium">Error</p>
               <p className="text-sm mt-1">{error}</p>
+            </div>
+          )}
+
+          {/* Features Grid - shown when no results */}
+          {!results && !isAnalyzing && (
+            <div className="mt-12 grid md:grid-cols-3 gap-6 text-center">
+              <div className="p-6 rounded-xl border border-border bg-background/50">
+                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                  <PieChart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold mb-2">Content Balance</h3>
+                <p className="text-sm text-muted-foreground">
+                  See blog vs core pages ratio at a glance
+                </p>
+              </div>
+              <div className="p-6 rounded-xl border border-border bg-background/50">
+                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Folder className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold mb-2">Folder Breakdown</h3>
+                <p className="text-sm text-muted-foreground">
+                  Understand how content is organized by section
+                </p>
+              </div>
+              <div className="p-6 rounded-xl border border-border bg-background/50">
+                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold mb-2">Visual Maps</h3>
+                <p className="text-sm text-muted-foreground">
+                  Interactive charts to explore site structure
+                </p>
+              </div>
             </div>
           )}
 
