@@ -1,3 +1,5 @@
+import { isNonEnglishUrl } from './language-codes';
+
 const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY;
 const FIRECRAWL_BASE_URL = 'https://api.firecrawl.dev/v1';
 
@@ -26,7 +28,11 @@ export async function mapWebsite(domain: string): Promise<string[]> {
         'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ 
+        url,
+        includeSubdomains: false,
+        limit: 5000,
+      }),
     });
 
     const elapsed = Date.now() - startTime;
@@ -51,6 +57,62 @@ export async function mapWebsite(domain: string): Promise<string[]> {
     return data.links;
   } catch (error) {
     console.error(`[FIRECRAWL MAP] ✗ Error mapping website "${domain}":`, error);
+    throw error;
+  }
+}
+
+/**
+ * Map blog-specific pages using search parameter
+ * Includes subdomains to catch blog.* patterns
+ */
+export async function mapBlogPages(domain: string): Promise<string[]> {
+  if (!FIRECRAWL_API_KEY) {
+    throw new Error('FIRECRAWL_API_KEY is not configured');
+  }
+
+  try {
+    const url = domain.startsWith('http') ? domain : `https://${domain}`;
+
+    console.log(`[FIRECRAWL MAP BLOG] Starting blog map for: ${url}`);
+    const startTime = Date.now();
+
+    const response = await fetch(`${FIRECRAWL_BASE_URL}/map`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        url,
+        search: 'blog',
+        limit: 5000,
+        includeSubdomains: true,
+        sitemapOnly: true,
+      }),
+    });
+
+    const elapsed = Date.now() - startTime;
+    console.log(`[FIRECRAWL MAP BLOG] Response received in ${elapsed}ms with status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[FIRECRAWL MAP BLOG] Error response:', response.status, errorText);
+      throw new Error(`Firecrawl map returned ${response.status}: ${errorText}`);
+    }
+
+    const data: FirecrawlMapResponse = await response.json();
+    console.log('[FIRECRAWL MAP BLOG] Response data:', JSON.stringify(data, null, 2));
+
+    if (!data.success || !data.links) {
+      console.error('[FIRECRAWL MAP BLOG] Failed - success:', data.success, 'links:', data.links);
+      throw new Error('Firecrawl map failed or returned no links');
+    }
+
+    console.log(`[FIRECRAWL MAP BLOG] ✓ Success! Found ${data.links.length} blog URLs in ${elapsed}ms`);
+
+    return data.links;
+  } catch (error) {
+    console.error(`[FIRECRAWL MAP BLOG] ✗ Error mapping blog pages "${domain}":`, error);
     throw error;
   }
 }
@@ -89,23 +151,6 @@ export function filterUrls(urls: string[], mainDomain?: string): string[] {
     /\/legal\//,
   ];
 
-  // Common language codes (ISO 639-1 two-letter codes, excluding 'en')
-  const languageCodes = [
-    'fr', 'de', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'ja', 'zh', 'ko', 'ar',
-    'tr', 'sv', 'da', 'no', 'fi', 'cs', 'hu', 'ro', 'el', 'he', 'th', 'vi',
-    'id', 'ms', 'uk', 'bg', 'hr', 'sk', 'sl', 'lt', 'lv', 'et', 'is', 'ga',
-    'mt', 'cy', 'sq', 'mk', 'sr', 'bs', 'ka', 'hy', 'az', 'kk', 'uz', 'mn',
-    'ne', 'si', 'km', 'lo', 'my', 'ka', 'am', 'ti', 'or', 'ta', 'te', 'kn',
-    'ml', 'si', 'th', 'lo', 'my', 'km', 'tl', 'jv', 'su', 'mg', 'haw'
-  ];
-
-  // Create regex patterns for language paths
-  const languagePatterns = languageCodes.flatMap(lang => [
-    new RegExp(`^https?://[^/]+/${lang}(/|$)`, 'i'),
-    new RegExp(`^https?://[^/]+/${lang}-[a-z]{2}(/|$)`, 'i'),
-    new RegExp(`^https?://${lang}\\.[^/]+`, 'i'),
-  ]);
-
   return urls.filter(url => {
     // Check junk patterns
     if (junkPatterns.some(pattern => pattern.test(url))) {
@@ -113,7 +158,7 @@ export function filterUrls(urls: string[], mainDomain?: string): string[] {
     }
 
     // Check for non-English language URLs
-    if (languagePatterns.some(pattern => pattern.test(url))) {
+    if (isNonEnglishUrl(url)) {
       return false;
     }
 

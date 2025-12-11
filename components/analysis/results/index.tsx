@@ -4,6 +4,7 @@ import type { AnalysisResponse } from "@/types/analysis";
 import { SummaryStats } from "./summary-stats";
 import { TopicCard } from "./topic-card";
 import { OutliersPanel } from "./outliers-panel";
+import { SiteMindMap } from "./site-mind-map";
 
 interface AnalysisResultsProps {
   results: AnalysisResponse;
@@ -21,6 +22,9 @@ export function AnalysisResults({ results }: AnalysisResultsProps) {
 
       {/* Summary Stats */}
       <SummaryStats results={results} />
+
+      {/* Site Structure Mind Map */}
+      <SiteMindMap results={results} />
 
       {/* Main Topics */}
       {results.topics && results.topics.length > 0 && (

@@ -1,5 +1,37 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { InteractiveAccordion, type AccordionItem } from "@/components/ui/interactive-accordion";
+
+const faqItems: AccordionItem[] = [
+  {
+    id: "what-is-paa",
+    number: "01",
+    title: "What is PAA gap analysis?",
+    content:
+      "PAA (People Also Ask) gap analysis identifies which Google PAA questions your competitors rank for but you don't, revealing content opportunities to capture more search visibility.",
+  },
+  {
+    id: "how-it-works",
+    number: "02",
+    title: "How does Serpa work?",
+    content:
+      "Enter your target keywords and domain. Serpa analyzes SERP data to show which PAA questions you're missing and where you can gain visibility with a simple, color-coded dashboard.",
+  },
+  {
+    id: "how-long",
+    number: "03",
+    title: "How long does analysis take?",
+    content:
+      "Most analyses complete in under 2 minutes. You get instant, actionable insights without complex setup or waiting.",
+  },
+  {
+    id: "pricing",
+    number: "04",
+    title: "Is Serpa free to use?",
+    content:
+      "Start with 2 free queries, no credit card required. Upgrade for unlimited analyses and additional features.",
+  },
+];
 
 export default function HomePage() {
   return (
@@ -62,6 +94,23 @@ export default function HomePage() {
                   Identify content opportunities in under 2 minutes. No learning curve, no complexity.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="border-t">
+          <div className="container mx-auto px-6 py-20">
+            <div className="max-w-2xl mx-auto">
+              <div className="mb-12">
+                <h2 className="text-3xl font-semibold tracking-tight mb-3">
+                  Frequently Asked Questions
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Everything you need to know about Serpa.
+                </p>
+              </div>
+              <InteractiveAccordion items={faqItems} defaultActiveId="what-is-paa" />
             </div>
           </div>
         </section>
